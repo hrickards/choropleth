@@ -1,0 +1,15 @@
+%html
+  %body
+    %h1 Select columns
+    %form(method='post' action='/choose_location')
+      Select location:
+      %select(name='location')
+        - @first_row.each do |field|
+          %option #{field}
+      %br
+      Select value:
+      %select(name='value')
+        - @first_row.each do |field|
+          %option #{field}
+      %br
+      %input(type='submit' value='Submit')

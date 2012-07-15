@@ -1,0 +1,9 @@
+%html
+  %body
+    %h1 Choose location
+    %form(method='post' action='/show_map')
+      Select type of location: 
+      %select(name='area_type')
+        %option(value='CTY') County
+      %br
+      %input(type='submit' value='Submit')

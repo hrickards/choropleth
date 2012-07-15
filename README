@@ -1,1 +1,9 @@
-Library for visualising location-based data on choropleth map using boundary datasets
+App for visualising location-based data on choropleth map using boundary datasets
+
+User uploads CSV file
+Then has to select the value column and the location column
+Then has to select the type of the location column
+Depending on type, locations are looked up in mongo and turned into boundaries
+KML is generated from this
+KML is uploaded to S3
+KML is shown on Google Map
