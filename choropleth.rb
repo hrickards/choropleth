@@ -83,7 +83,14 @@ class Choropleth
 
   # Takes a value and returns the color for it
   def get_color(value)
-    '505078F0'
+    # TODO Do this a better way. Maybe fit to normal distribution.
+    delta = @data.values.max - @data.values.min
+    color_range = 255.0
+
+    step = color_range / delta
+
+    change_val = "%02X" % (color_range - ((value - @data.values.min) * step)).round
+    "5014#{change_val}FF"
   end
 end
 
