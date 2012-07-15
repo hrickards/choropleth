@@ -1,10 +1,7 @@
-require 'uri'
-require 'net/http'
-require 'json'
 require 'nokogiri'
+require_relative 'mapit'
 
 class Choropleth
-  # data can be a hash or an array of arrays
   attr_accessor :data, :area_type
 
   def initialize(data, area_type)
@@ -25,43 +22,31 @@ class Choropleth
     @kml_data.flatten.reverse.each { |node| document.add_child node }
     output.add_child kml
 
-    puts output.to_xml
+    @kml = output.to_xml
+  end
+
+  # Returns the KML
+  def get_kml
+    @kml
   end
 
   private
   # Sets area_data to be a hash of area ids => values
   def geocode_data
     @area_data = {}
-    @data.each { |area_name, value| @area_data[geocode area_name] = value }
-  end
-
-  # Takes an area_name and returns an area id
-  def geocode(place_name)
-    place_name = URI.escape place_name
-    url = "http://mapit.mysociety.org/areas/#{place_name}?type=#{@area_type}"
-    response = Net::HTTP.get_response URI.parse(url)
-
-    result = JSON.parse response.body
-    result.values.first['id']
+    @data.each { |k, v| @area_data[MapIt.get_area_id k, @area_type] = v }
   end
 
   # Sets @kml_data to be a hash of KML boundary data => KML style data
   def kmlise_data
     @kml_data = {}
-    @area_data.each { |area_id, value| @kml_data[get_boundary area_id] = get_kml_style value, area_id }
+    @area_data.each { |k, v| @kml_data[get_boundary k] = get_kml_style v, k }
   end
 
   # Takes an area_id and returns the KML for it's boundaries
   def get_boundary(area_id)
-    url = "http://mapit.mysociety.org/area/#{area_id}.kml"
-    response = Net::HTTP.get_response URI.parse(url)
-
-    result  = Nokogiri.XML response.body
-    result.remove_namespaces!
-
-    placemark = result.xpath('//Placemark').first
+    placemark = MapIt.get_boundary(area_id)
     placemark.xpath('//styleUrl').first.content = "#s#{area_id}"
-
     placemark
   end
 
@@ -96,3 +81,4 @@ end
 
 choropleth = Choropleth.new({"East Sussex" => 5.4, "West Sussex" => 2.7, "Kent" => 0.1}, "CTY")
 choropleth.generate_kml
+puts choropleth.get_kml
