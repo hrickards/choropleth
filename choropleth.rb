@@ -1,5 +1,6 @@
 require 'nokogiri'
 require_relative 'mapit'
+require_relative 'kml_generator'
 
 class Choropleth
   attr_accessor :data, :area_type
@@ -14,15 +15,7 @@ class Choropleth
     geocode_data
     kmlise_data
 
-    output = Nokogiri::XML::Document.new
-    kml = Nokogiri::XML::Node.new 'kml', output
-    kml.set_attribute 'xmlns', 'http://www.opengis.net/kml/2.2'
-    document = Nokogiri::XML::Node.new 'Document', output
-    kml.add_child document
-    @kml_data.flatten.reverse.each { |node| document.add_child node }
-    output.add_child kml
-
-    @kml = output.to_xml
+    @kml = KMLGenerator.generate_from_nodes @kml_data.flatten.reverse
   end
 
   # Returns the KML
@@ -52,18 +45,8 @@ class Choropleth
 
   # Takes an area_id and value and returns the KML for it's style
   def get_kml_style(value, area_id)
-    builder = Nokogiri::XML::Builder.new do |xml|
-      xml.Style(:id => "s#{area_id}") {
-        xml.PolyStyle {
-          xml.color get_color(value)
-        }
-        xml.LineStyle {
-          xml.color get_color(value)
-          xml.width 2
-        }
-      }
-    end
-    Nokogiri::XML(builder.to_xml).xpath '//Style'
+    color = get_color value
+    KMLGenerator.generate_style color, 2, color, "s#{area_id}"
   end
 
   # Takes a value and returns the color for it
